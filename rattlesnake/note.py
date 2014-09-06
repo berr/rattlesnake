@@ -58,6 +58,17 @@ class Note(object):
         return semitones
 
 
+    def __str__(self):
+        return '{}{}{}'.format(self._note, self._accidental, self._octave)
+
+
+    def __eq__(self, other):
+        if not isinstance(other, Note):
+            return False
+
+        return (self._note, self._accidental, self._octave) == (other._note, other._accidental, other._octave)
+
+
 
 
 

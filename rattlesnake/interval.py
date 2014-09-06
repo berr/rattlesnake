@@ -1,9 +1,14 @@
+from itertools import cycle, takewhile, dropwhile
+from rattlesnake.note import Note
+
+
 class Interval(object):
 
     perfect, minor, major, diminished, augmented = intervals = ['Perfect', 'Minor', 'Major', 'Diminished', 'Augmented']
 
 
     def __init__(self, note, number, quality):
+        self._note = note
         self._number = number
         self._quality = quality
 
@@ -106,30 +111,38 @@ class Interval(object):
         if self._number <= 8:
             return ' '.join([self._quality, self._number_to_name[self._number]])
 
+        return ' '.join(['Compound', self._quality, self._number_to_name[self._pure_interval()]])
+
+
+    def _pure_interval(self):
         interval = self._number % 7
         if interval == 0:
             interval = 7
         elif interval == 1:
             interval = 8
 
-        return ' '.join(['Compound', self._quality, self._number_to_name[interval]])
+        return interval
 
 
+    def _octaves_range(self):
+        return (self._number - 1) // 7
+
+
+    _notes_distances = [2, 2, 1, 2, 2, 2, 1]
     def target_note(self):
-        # TODO
-        pass
+        source_note_index = Note.notes.index(self._note._note)
+        target_note_index = source_note_index + self._number - 1
 
+        should_ignore = lambda i: i[0] < source_note_index
+        should_use = lambda i: i[0] < target_note_index
+        distance = sum((x[1] for x in takewhile(should_use, dropwhile(should_ignore, enumerate(cycle(self._notes_distances))))))
 
+        missing_distance = self.distance() - distance
+        accidental_diference = Note.accidentals.index(self._note._accidental) + missing_distance
 
+        target_note = Note.notes[target_note_index % 7]
+        target_octave = self._octaves_range() + self._note._octave
+        target_interval = Note.accidentals[accidental_diference]
 
-
-
-
-
-
-
-
-
-
-
+        return Note(target_note, accidental=target_interval, octave=target_octave)
 
